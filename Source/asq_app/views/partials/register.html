@@ -1,0 +1,44 @@
+<div class="middle-box text-center loginscreen animated fadeInDown">
+    <div>
+        <div>
+
+            <h1 class="logo-name">ASQ</h1>
+
+        </div>
+        <h3>Register to Big Bang ASQ</h3>
+        <p>Create account to see it in action.</p>
+        <div class="m-t"  >
+            <!-- <div class="form-group">
+                <input type="text" class="form-control" placeholder="Screen Name" required="">
+            </div> -->
+			<div class="form-group">
+				<input type="text" ng-model="user.email" class="form-control" placeholder="Email Address" ng-blur="test(user.email)"><span ng-show="checkEmail" style="color: red;">Email format invalid!</span>
+			</div>
+            <div class="form-group">
+                <input type="text" ng-model="user.firstName" class="form-control" placeholder="First Name">
+            </div>
+            <div class="form-group">
+                <input type="text" ng-model="user.lastName" class="form-control" placeholder="Last Name">
+            </div>
+            <div class="form-group">
+                <input type="password" ng-model="user.passwd1" class="form-control" placeholder="New Password">
+            </div>
+            <div class="form-group">
+                <span class="{{myClass}}"><input type="password" ng-model="user.passwd2" ng-change="verify()" class="form-control" placeholder="Confirm Password"></span>
+            </div>
+            <br>
+            <!-- <div class="form-group">
+                <div class="checkbox"><label> <input type="checkbox"><i></i> Agree the terms and policy </label></div>
+            </div> -->
+            <button ng-click="register(user)" ng-disabled="error" class="btn btn-primary block full-width m-b">Register</button>
+
+            <p class="text-muted text-center"><small>Already have an account?</small></p>
+            <a class="btn btn-sm btn-white btn-block" href="/login">Login</a>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2015 Big Bang ASQ Exam</p>
+            <p>Questions Provided by <a href="http://www.qualitycouncil.com/CSQE.html" target="_blank">Quality Council of Indiana</a> and by <a href="http://www.westfallteam.com/quiz_listing" target="_blank">Linda Westfall</a></p>
+        </div>
+    </div>
+</div>
+
