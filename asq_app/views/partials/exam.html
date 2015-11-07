@@ -12,7 +12,8 @@
 				<div style="text-align: right" class="col-md-5 col-md-offset-3 col-sm-5 col-sm-offset-2">
 
 					<br>
-					<h4>Welcome, {{currentUser.firstName}}</h4>
+					<!-- Modified for ASQ Upgrade 2.0.Added last name for welcome message. -->
+					<h4>Welcome, {{currentUser.firstName}},{{currentUser.lastName}}</h4>
 					<!--<span style="font-size: 20px; color: navy;">Time Remaining: {{Hours}}:{{Minutes}}:{{Seconds}}</span> -->
 					<!--<timer interval="1000" end-time="3*60*60*1000">{{days}} days, {{hours}} hours, {{minutes}} minutes, {{seconds}} seconds.</timer>-->
 

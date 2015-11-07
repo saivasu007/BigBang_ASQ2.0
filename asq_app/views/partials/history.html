@@ -15,8 +15,14 @@
 				<div style="text-align: right" class="col-md-5 col-md-offset-3 col-sm-5 col-sm-offset-2">
 
 					<br>
-					<h4>Welcome, {{currentUser.firstName}}</h4>
+					<!-- Modified for ASQ Upgrade 2.0.Added last name for welcome message. -->
+					<h4>Welcome, {{currentUser.firstName}} {{currentUser.lastName}}</h4>
 					<span class="color customLink"><a href="/home">Home</a></span> |
+					<!-- Modified by Srinivas Thungathurti for ASQ Upgrade 2.0. Added Admin link on Home screen. -->
+					<span class="color customLink" ng-if="currentUser.role=='admin'"><a href="/admin">Admin</a> |</span>
+					<span class="color customLink"><a href="/profile">Profile</a></span> |
+					<span class="color customLink"><a href="/changePassword">Change Password</a></span> |
+					<!-- End changes for ASQ Upgrade 2.0. -->
 					<span class="color customLink"><a href="" ng-click="logout()">Logout</a></span>
 
 				</div>
@@ -46,9 +52,11 @@
 			</div>
 			<h3>Your CSQE Exam & Practice History:</h3>
 			<br><br>
+			<div style="border:2px solid #5BC0DE">
 			<table class="table table-striped">
 				<thead>
-				<tr>
+				<!-- Updated for ASQ Upgrade2.0.Added background color to table headings. -->
+				<tr style="background-color:#D3D3D3">
 					<!--<th>Number #</th>-->
 					<th>Date</th>
 					<th>Time</th>
@@ -59,8 +67,9 @@
 				</tr>
 				</thead>
 				<tbody>
-				<!--<tr ng-repeat ="history in filtered =  (histories | orderBy:sor | filter:fil)">-->
-				<tr ng-repeat="history in histories | orderBy:sor | filter:fil">
+				<!-- Modified table row to show only 10 records per page as per pagination setup. -->
+				<!-- <tr ng-repeat="history in histories | orderBy:sor | filter:fil"> -->
+				<tr ng-repeat="history in partialHistory | orderBy:sor | filter:fil">
 					<td>{{history.date | date: 'MM-dd-yyyy'}}</td>
 					<td>{{history.date | date: 'HH:mm:ss'}}</td>
 					<td>{{history.mode}}</td>
@@ -75,9 +84,22 @@
 
 				</tbody>
 			</table>
-
-
-
+			<table class="table" style="margin-bottom:0px">
+			<tbody>
+			<tr ng-show="partialHistory.length > 0">
+				<td></td><td></td><td></td><td></td><td></td>
+				<td align="right">
+				    <pagination 
+				      ng-model="currentPage"
+				      total-items="allHistory.length"
+				      max-size="maxSize"  
+				      boundary-links="true">
+				    </pagination>
+				</td>
+				</tr>
+			</tbody>
+			</table>
+			</div>
 			<hr>
 		</div>
 	</div>
