@@ -789,6 +789,7 @@ app.controller('changePwdCtrl', function ($q,$scope, $rootScope, $http, $locatio
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 	
@@ -803,10 +804,10 @@ app.controller('changePwdCtrl', function ($q,$scope, $rootScope, $http, $locatio
             if (response == 'success'){
                 alert ('Password Updated Successfully!');
                 $scope.currentUser=response;
-                alert("Please connect the appliation using New Password.");
-                $location.url('/logout')
+                alert("Please connect the ASQ appliation using New Password.");
+                $scope.logout();
             } else if (response == 'incorrect') {
-                alert ('Old Password not correct!');
+                alert ('Old Password is not correct!');
                 $scope.currentUser={};
                 $location.url('/changePassword')
             } else if (response == 'error'){
@@ -822,14 +823,19 @@ app.controller('changePwdCtrl', function ($q,$scope, $rootScope, $http, $locatio
 
 		if ($scope.currentUser.password1 !== $scope.currentUser.password2) {
 			$scope.wrong = true;
-			$scope.errorClass = "has-error";
+			$scope.passwdErr = true;
 		}
 		else {
 			$scope.wrong = false;
-			$scope.errorClass = "";
+			$scope.passwdErr = false;
 		}
 
 	};
+	
+	//test on the length of first password.
+    $scope.testPass = function () {
+        $scope.passwordSh = $scope.currentUser.password1.length <= 5
+    };
 });
 //End changes for ASQ Upgrade 2.0.
 
@@ -2601,13 +2607,6 @@ app.config(function ($routeProvider, $httpProvider, $locationProvider) {
 		when('/examInfo', {
 			templateUrl: 'partials/examInfo.html',
 			controller: 'adminCtrl',
-			resolve: {
-				loggedin: checkLoggedIn
-			}
-		}).
-		when('/testDynamic', {
-			templateUrl: 'partials/TestDynamic.html',
-			controller: 'historyCtrl',
 			resolve: {
 				loggedin: checkLoggedIn
 			}
