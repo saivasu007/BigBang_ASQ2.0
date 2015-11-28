@@ -50,19 +50,12 @@
 				</div>
 				<br><br>
 				<!-- Added by Srinivas Thungathurti for ASQ Upgrade 2.0.Added additional user input fields.-->
-				<!-- 
-				<div class="form-group">
-				<label for="dob" class="col-sm-2" style="font-size: 16px">Birth Date:</label>
-				<div class="form-group col-sm-10">
-                <input id="dob" style="width: 200px; height: 30px" type="text" ng-model="user.birthDate" class="form-control" placeholder="Date Of Birth">
-            	</div>
-            	</div>
-            	-->
+				<!-- Updated for ASQ Upgrade2.0 and issue#2 (Github Issues Tab) .Date picker disabled weekends and need to show all the dates as available. -->
             	<div class="form-group" ng-controller="DatepickerCtrl">
 				<label for="dob" class="col-sm-2" style="font-size: 16px">* Birth Date:</label>
 		        <div class="form-group col-sm-10" style="width:180px;">
 		        <input id="dob" type="text"  class="form-control" uib-datepicker-popup="MM/dd/yyyy" ng-model="user.birthDate" is-open="status.opened" 
-		              	min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" 
+		              	min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" 
 		              	ng-required="true" close-text="Close" style="width:200px;height: 29px;" placeholder="Date Of Birth"/ ng-required="true">
 		         </div>
 		         <span class="input-group-btn">
@@ -115,11 +108,12 @@
 					</div>
 				</div>
 				<br><br>
+				<!-- Updated for ASQ Upgrade2.0 and issue#2 (Github Issues Tab) .Date picker disabled weekends and need to show all the dates as available. -->
 				<div class="form-group" ng-controller="DatepickerCtrl">
 				<label for="exp" class="col-sm-2" style="font-size: 16px">* Expiry Date:</label>
 		        <div class="form-group col-sm-10" style="width:180px;">
 		        <input id="exp" type="text"  class="form-control" uib-datepicker-popup="MM/dd/yyyy" ng-model="user.expiryDate" is-open="status.opened" 
-		              	min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" 
+		              	min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" 
 		              	ng-required="true" close-text="Close" style="width:200px;height: 29px;" placeholder="Expiry Date in ASQ"/ ng-required="true">
 		         </div>
 		         <span class="input-group-btn">
@@ -162,10 +156,10 @@
 			<button style="margin: 35px 32px 60px 140px; width: 95px; height: 40px; font-size: 16px" class="btn btn-primary" ng-disabled="userInfoUpdate.$invalid" ng-click="saveUser(user)">
 				<span class="glyphicon glyphicon-ok-sign"></span>  Save
 			</button>
-			<button style="margin: 35px 32px 60px 0px; width: 95px; height: 40px; font-size: 16px;" class="btn btn-primary" ng-click="del(user)">
+			<button style="margin: 35px 32px 60px 0px; width: 95px; height: 40px; font-size: 16px;" class="btn btn-warning" ng-click="del(user)">
 				<span class="glyphicon glyphicon-ok-sign"></span>  Delete
 			</button>
-			<a href="/userInfo"><button style="margin: 35px 35px 60px 0px; width: 95px; height: 38px; font-size: 16px" class="btn btn-warning">
+			<a href="/userInfo"><button style="margin: 35px 35px 60px 0px; width: 98px; height: 38px; font-size: 16px" class="btn btn-warning">
 				<span class="glyphicon glyphicon-remove-sign"></span>  Cancel
 			</button></a>
 

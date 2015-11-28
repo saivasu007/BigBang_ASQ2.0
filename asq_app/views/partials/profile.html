@@ -64,8 +64,9 @@
 				<div class="form-group" ng-controller="DatepickerCtrl">
 				<label for="dob" class="col-sm-2" style="font-size: 16px">* Birth Date:</label>
 		        <div class="form-group col-sm-10" style="width:180px;">
+		        <!-- Updated for ASQ Upgrade2.0 and issue#2 (Github Issues Tab).Date picker disabled weekends and need to show all the dates as available. -->
 		        <input id="dob" type="text"  class="form-control" uib-datepicker-popup="MM/dd/yyyy" ng-model="currentUser.birthDate" is-open="status.opened" 
-		              	min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" 
+		              	min-date="minDate" max-date="maxDate" datepicker-options="dateOptions"  
 		              	ng-required="true" close-text="Close" style="width:200px;height: 30px;" placeholder="Date Of Birth" ng-required="true"/>
 		         </div>
 		         <span class="input-group-btn">

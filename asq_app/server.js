@@ -18,9 +18,10 @@ var moment = require("moment");
 var connectFlash = require('connect-flash');
 var path = require('path');
 var templatesDir = path.resolve(__dirname + '/views/templates');
-var emailTemplates = require('email-templates');
+var pageDir = path.resolve(__dirname + '/views/partials');
 // Added by Srinivas Thungathurti for ASQ upgrade 2.0.
 var properties = propertiesReader('applicationResources.file');
+var crypto = require("crypto");
 
 var app = express();
 //Updated by Srinivas Thungathurti for moving hardcode port value to property file.
@@ -45,6 +46,8 @@ var PMModel = require('./models/PMModel.js');
 var historyModel = require('./models/historyModels.js');
 //Added for ASQ Upgrade 2.0.New Model (Certification Model) added to ASQ Application.
 var certModel = require('./models/certModel.js');
+var fs  = require('fs');
+var ejs = require('ejs');
 
 // Added by Srinivas Thungathurti for ASQ upgrade 2.0.Added properties file to
 // store and retrieve the static information.
@@ -56,6 +59,13 @@ var emailSubject = properties.get('app.email.subject');
 var bodyText = properties.get('app.email.body.text');
 var bodyHtml = properties.get('app.email.body.html');
 var emailFooter = properties.get('app.email.body.footer');
+var emailChangePwdSubject = properties.get('app.email.subjectChgPwd');
+var regTemplate = properties.get("app.email.registrationTem");
+var chgPwdTemplate = properties.get("app.email.changePwdTem");
+var pwdResetSubject = properties.get("app.email.subjectResetPwd");
+var resetPwdTemplate = properties.get("app.email.resetPwdTem");
+var resetConfirmSubject = properties.get("app.email.subjectConfirmResetPwd");
+var resetConfirmTemplate = properties.get("app.email.resetConfirmTem");
 
 // Utils
 function randomNfromM(N, A) {
@@ -124,6 +134,28 @@ function getAllQuestionFromModel(Model) {
 	}
 }
 
+//Function added for ASQ Upgrade2.0 to encrypt the passwords in ASQ Portal.
+function encrypt(pass){
+	  var cipher = crypto.createCipher('aes-256-cbc','d6F3Efeq')
+	  var crypted = cipher.update(pass,'utf8','hex')
+	  crypted += cipher.final('hex');
+	  return crypted;
+	}
+
+//Function added for ASQ Upgrade2.0 to decrypt the passwords from ASQ Portal.
+function decrypt(pass){
+	  var decipher = crypto.createDecipher('aes-256-cbc','d6F3Efeq')
+	  var dec = decipher.update(pass,'hex','utf8')
+	  dec += decipher.final('utf8');
+	  return dec;
+}
+
+//Function added for ASQ Upgrade2.0 to render the HTML email templates in ASQ Portal.
+function renderTemplate (name, data) {
+	  var tpl = fs.readFileSync(path.resolve(__dirname+"/views/", 'templates', name + '.html')).toString();
+	  return ejs.render(tpl, data);
+}
+
 // register middle-ware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -149,36 +181,21 @@ passPort.use(new localStrategy({
 	// authentication method
 	userModel.findOne({
 		email : username,
-		password : password
-	}, function(err, user) {
-		if (user) {
-			return done(null, user)
-		}
-		return done(null, false)
-	})
+		password : encrypt(password)
+	}, function (err, user) {
+        if (err) return done(err);
+        if (user) {
+        	var date = new Date();
+        	var formatDate = date.getMonth() + 1 + '/' + date.getDate() + '/' +  date.getFullYear();
+            if (new Date(user.expiryDate) < new Date(formatDate)) {
+            	console.log(user.email+" expired in ASQ Exam Portal.");
+                return done(err+" expired");
+            }
+            return done(null, user)
+        }
+        return  done(null, false)
+    })
 }));
-
-//Srinivas for ASQ2.0.
-/*
-passPort.use(new localStrategyExp({
-	usernameField : 'email',
-	expiryDateField : 'expiryDate',
-	session : false
-}, function(username, expiryDt, done) {
-	// authentication method
-	userModel.findOne({
-		email : username,
-		expiryDate : {$gte:new Date()}
-	}, function(err1, user) {
-		if (user) {
-			console.log("success exp "+user);
-			return done(null, user)
-		}
-		console.log("unsuccess exp");
-		return done(null, false)
-	})
-}));
-*/
 
 passPort.serializeUser(function(user, done) {
 	done(null, user);
@@ -190,6 +207,8 @@ passPort.deserializeUser(function(user, done) {
 
 // routes
 app.post('/register', function(req, res) {
+	var password = encrypt(req.body.password);
+	req.body.password = password;
 	userModel.findOne({
 		email : req.body.email
 	}, function(err, result) {
@@ -201,38 +220,38 @@ app.post('/register', function(req, res) {
 				req.login(user, function() {
 					res.json(user);
 				});
+             //sendMail(user,'registration',null);
+			//send email after successful registration.
+				var smtpTransport = mailer.createTransport(emailTransport, {
+					service : "Gmail",
+					auth : {
+						user : serviceUser,
+						pass : servicePasswd
+					}
+				});
+				var data = {
+						email: user.email,
+			            password: decrypt(user.password)
+				}
+				var mail = {
+					from : emailFrom,
+					to : req.body.email,
+					subject : emailSubject,
+					html: renderTemplate(regTemplate,data)
+				}
+
+				smtpTransport.sendMail(mail, function(error, response) {
+					if (error) {
+						console.log(error);
+					} else {
+						console.log("Message sent: " + response.message);
+					}
+				   smtpTransport.close();
+				});
+			    //End email communication here.
 			})
 		}
 	});
-	// Added by Srinivas Thungathurti for ASQ Upgrade 2.0.Send Email
-	// after successful Registration.
-	// Use SMTP Protocol to send Email
-	var emailBody = bodyHtml+'<br/><br/>'+'<b>Username :'+req.body.email+'<br/>'+'Password :'+req.body.passwd1+'</b><br/><br/><br/><br/><br/><br/><br/><br/>'+emailFooter;
-	var smtpTransport = mailer.createTransport(emailTransport, {
-		service : "Gmail",
-		auth : {
-			user : serviceUser,
-			pass : servicePasswd
-		}
-	});
-	var mail = {
-		from : emailFrom,
-		to : req.body.email,
-		subject : emailSubject,
-		text : bodyText,
-		html : req.body.emailContent
-	}
-
-	smtpTransport.sendMail(mail, function(error, response) {
-		if (error) {
-			console.log(error);
-		} else {
-			console.log("Message sent: " + response.message);
-		}
-
-		smtpTransport.close();
-	});
-	// End changes for ASQ Upgrade 2.0.
 	
 });
 //Modified by Srinivas Thungathurti
@@ -260,6 +279,119 @@ app.get('/loggedin', function(req, res) {
 		res.send("0");
 	}
 });
+
+//Added for ASQ Upgrade2.0.Forgot Password functionality.
+app.post('/forgot', function(req, res) {
+	      crypto.randomBytes(20, function(err, buf) {
+	        token = buf.toString('hex');
+	      
+	      console.log("token "+token);
+	    	userModel.findOne({ email: req.body.email }, function(err, user) {
+	        if (!user) {
+	          console.log('No account with that email address exists.');
+	          return res.send('NotFound');
+	        }
+	        userModel.update({
+				email : req.body.email
+			}, {
+				resetPasswordToken : token,
+				resetPasswordExpires : Date.now() + 3600000
+			}, false, function(err) {
+				res.send(err);
+			})
+	      });
+	    	
+	      var smtpTransport = mailer.createTransport(emailTransport, {
+	        service: 'Gmail',
+	        auth: {
+	          user: serviceUser,
+	          pass: servicePasswd
+	        }
+	      });
+	      var data = {
+			  host: req.headers.host,
+		      token: token
+		  }
+	      var mailOptions = {
+	        to: req.body.email,
+	        from: emailFrom,
+	        subject: pwdResetSubject,
+	        html: renderTemplate(resetPwdTemplate,data)
+	      };
+	      smtpTransport.sendMail(mailOptions, function(err,response) {
+	        if (err) {
+				console.log(err);
+				res.send(err);
+			 } else {
+				console.log('An e-mail has been sent to ' + req.body.email + ' with further instructions.');
+				console.log("Message sent: " + response.message);
+			 }
+	    	 smtpTransport.close();
+	    	 //res.send("success");
+	      });
+	   });
+	});
+
+app.get('/reset/:token', function(req, res) {
+	userModel.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires : { $gt: new Date() } }, function(err, user) {
+	    if (!user) {
+	      console.log('Password reset token is invalid or has expired.');
+	      return res.send('Password reset URL is invalid or has expired.');
+	    }
+	 res.redirect('/reset?token='+req.params.token);
+	});
+});
+
+app.post('/reset', function(req, res) {
+	userModel.findOne({ resetPasswordToken: req.body.token, resetPasswordExpires : { $gt: new Date() } }, function(err, user) {
+        if (!user) {
+          console.log('Password reset token is invalid or has expired.');
+          return res.send('Password reset URL is invalid or has expired.');
+        }
+        user.password = req.body.password;
+        user.resetPasswordToken = "";
+        user.resetPasswordExpires = "";
+        userModel.update({
+			email : user.email
+		}, {
+			password : encrypt(user.password),
+			resetPasswordToken : user.resetPasswordToken,
+			resetPasswordExpires : user.resetPasswordExpires
+		}, false, function(err) {
+			if(err) res.send(err);
+			else console.log('Success! Your password has been changed.');
+		})
+		//Send email after succeesful password reset.
+		var smtpTransport = mailer.createTransport(emailTransport, {
+	        service: 'Gmail',
+	        auth: {
+	          user: serviceUser,
+	          pass: servicePasswd
+	        }
+	      });
+	      var data = {
+	    		  email: user.email,
+				  password: req.body.password
+	      }
+	      var mailOptions = {
+	        to: user.email,
+	        from: emailFrom,
+	        subject: resetConfirmSubject,
+	        html: renderTemplate(resetConfirmTemplate,data)
+	      };
+	      smtpTransport.sendMail(mailOptions, function(err,response) {
+	    	 if (err) {
+				console.log(err);
+				res.send(err);
+			 } else {
+				console.log("Message sent: " + response.message);
+			 }
+	    	 smtpTransport.close();
+	    	 res.send("success");
+	      });
+      });
+});
+//End Forgot Password functionality here.
 
 app.get('/quiz', function(req, res) {
 	var jobs = [ getQuestionFromModel(EPModel, 11),
@@ -691,12 +823,39 @@ app.post('/delCertDet', function(req, res) {
 
 //Added by Srinivas Thungathurti for ASQ Upgrade 2.0.Change password fields are moved from Profile and added part of new Screen (Change Password).
 app.post('/changePasswd', function (req, res) {
-	userModel.find({email:req.body.email, password:req.body.oldPassword}, function (err, result) {
+	userModel.find({email:req.body.email, password:encrypt(req.body.oldPassword)}, function (err, result) {
         if (result && result.length != 0) {
-            console.log(result, req.body);
-            userModel.update({email:req.body.email},{$set:{password:req.body.password2}},false,function (err, num){
+            userModel.update({email:req.body.email},{$set:{password:encrypt(req.body.password2)}},false,function (err, num){
                 if (num.ok == 1){
                 	console.log('success');
+                	//sendMail(null,'changePassword',decrypt(req.body.password2));
+                	//send email after successful registration.
+    				var smtpTransport = mailer.createTransport(emailTransport, {
+    					service : "Gmail",
+    					auth : {
+    						user : serviceUser,
+    						pass : servicePasswd
+    					}
+    				});
+    				var data = {
+    			            password: req.body.password2
+    				}
+    				var mail = {
+    					from : emailFrom,
+    					to : req.body.email,
+    					subject : emailChangePwdSubject,
+    					html: renderTemplate(chgPwdTemplate,data)
+    				}
+
+    				smtpTransport.sendMail(mail, function(error, response) {
+    					if (error) {
+    						console.log(error);
+    					} else {
+    						console.log("Message sent: " + response.message);
+    					}
+    				   smtpTransport.close();
+    				});
+    			    //End email communication here.
                     res.send('success')
                 } else {
                 	console.log('error');

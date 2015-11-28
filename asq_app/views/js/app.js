@@ -360,6 +360,7 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
         }
     });
     
+    //Updated for ASQ Upgrade2.0 issue#4 (Github Issues Tab).Fixed zipcode field for not showing error message when zipcode not selected.
     $('#zip').keypress(function(key) {
     	var re = /^\d{5}(?:[-\s]\d{4})?$/;
     	if(((key.charCode < 48 && key.charCode != 45) || key.charCode > 57) && ($.inArray(key.charCode, [0, 8, 16, 20, 46]))) {
@@ -368,13 +369,18 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
 	            return false;
 	    } else {
 	        	$('[data-toggle="tooltip2"]').tooltip('hide');
-	        	$scope.zipCodeErr = !re.test($scope.user.zipcode);
+	        	if($scope.user.zipcode != "") {
+	        		$scope.zipCodeErr = !re.test($scope.user.zipcode);
+	        	} else {
+	        		$scope.zipCodeErr = false;
+	        	}
 	    }
     });
     
     $('#city').keypress(function(key) {
         //prevent user from input non-letter chars.
-        if((key.charCode < 97 || key.charCode > 122) && (key.charCode < 65 || key.charCode > 90)
+    	//Updated below logic for ASQ Upgrade 2.0 Issue#3 (Github Issues Tab) .Consider Space as valid option for city input.
+        if(((key.charCode < 97 && key.charCode != 32) || key.charCode > 122) && (key.charCode < 65 || key.charCode > 90)
             && ($.inArray(key.charCode, [0, 8, 16, 20, 45, 46]))) {
             //show a tooltip to let user know why the keystroke is not working.
             $('[data-toggle="tooltip3"]').tooltip('show');
@@ -388,8 +394,11 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
    //regex to test the email pattern, gets invoked after the blur event of email input.
     $scope.testUsername = function () {
         var re = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-        $scope.usernameErr = !re.test($scope.user.email);
-        console.log($scope.user.email);
+        if($scope.user.email != "") {
+           $scope.usernameErr = !re.test($scope.user.email);
+        } else {
+           $scope.usernameErr = false;
+        }
     };
     
     $scope.testBirthDate = function () {
@@ -422,17 +431,6 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
 			$scope.error = true;
 		}
 	};
-	
-	//For Test ASQ Upgrade2.0.
-	$scope.loadTemplate = function () {
-		$scope.emailContent = [];
-        $scope.file = 'templates/emailTemplate.html';
-        $http.get($scope.file).success(function(data, status, headers, config) {
-            $scope.emailContent = data;
-        })
-    };
-    $scope.loadTemplate();
-    //End ASQ.
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	//Updated by Srinivas Thungathurti for ASQ Upgrade 2.0.Additional registration fields added for Validation.
@@ -441,7 +439,7 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
 		var currentDate = new moment();
 		var expDate = moment(currentDate.add(3,'months')).format('MM/DD/YYYY');
 		
-		if ($scope.user.email == "" || $scope.user.firstName == "" || $scope.user.lastName == "" || $scope.user.passwd1 == "" || $scope.user.passwd2 == "" || $scope.user.address1 == "" || $scope.user.city == "" || $scope.user.state.name == "" || $scope.user.zipcode == "" || $scope.user.birthDate == "") {
+		if ($scope.user.email == "" || $scope.user.firstName == "" || $scope.user.lastName == "" || $scope.user.passwd1 == "" || $scope.user.passwd2 == "" || $scope.user.address1 == "" || $scope.user.city == "" || $scope.user.state.name == "" || $scope.user.zipcode == "" || $scope.user.birthDate == "" || $scope.user.birthDate == undefined) {
 			alert("We need your complete personal information! Please fill in all the blanks.");
 		}
 		else {
@@ -452,14 +450,12 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
 			$scope.user.activeIn = "Y";
 			$scope.user.subscriber = "No";
 			$scope.user.state = $scope.selectedState;
-			$scope.user.emailContent = $scope.emailContent;
 			$scope.user.birthDate = moment($scope.user.birthDate).format('MM/DD/YYYY');
 
 			$http.post('/register', user).success(function (response) {
 				if (response != "0") {
 					alert("Success! Please login with your registered email \"" + user.email + "\" and password you created.");
-					$rootScope.currentUser = response;
-					console.log(response);
+					$rootScope.currentUser = response;					
 					$location.path('/login');
 				} else {
 					alert("Sorry, the account \"" + user.email + "\" has already been registered! Please create a new one.")
@@ -469,14 +465,80 @@ app.controller('registerCtrl', function($scope, $location, $rootScope, $http) {
 	};
 });
 
-app.controller('loginCtrl', function ($scope, $rootScope, $http, $location) {
+app.controller('loginCtrl', function ($scope, $rootScope, $http, $routeParams, $location) {
 	$scope.login = function (user){
 		$http.post('/login', user).success(function (response){
 			console.log(response);
 			$rootScope.currentUser = response;
 			$location.url('/home');
 		}).error(function (err) {
-			alert("Email or password does not match! Please login again.");
+			if(err == "Unauthorized") {
+				alert("Email or password does not match! Please login again.");
+			} else if(err != "Bad Request") {
+				alert("User account expired in ASQ Exam Portal.");
+			} else {
+				alert("Please enter Username or Password.");
+			}
+		})
+	};
+	
+	//test on the length of first password.
+    $scope.testPasswordLen = function () {
+        $scope.passwordShort = $scope.user.password1.length <= 5
+    };
+    
+	//test if both passwords match.
+    $scope.testPassword = function () {
+    	if($scope.user.password2 != "") {
+           $scope.passwordErr = ($scope.user.password1 != $scope.user.password2);
+    	}
+    };
+    //End changes for ASQ Upgrade2.0.
+    
+    if($scope.email == undefined) $scope.disable = true;
+
+	$scope.testEmail = function() {
+		var re = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+		if($scope.email == undefined || $scope.email == "") {
+			$scope.emailErr = false;
+			$scope.disable = true;
+		}
+		else {
+			$scope.emailErr = !re.test($scope.email);
+			if($scope.emailErr == true) $scope.disable = true;
+			else $scope.disable = false;
+		}
+	};
+	
+	//Added for ASQ Upgrade2.0 for adding Forgot Password Functionality.
+	$scope.forgot = function (emailID){
+		var postData = {
+			email: emailID
+		}
+		$http.post('/forgot', postData).success(function (response){
+			console.log(response);
+			alert("Please check the registered email for instructions.");
+			$location.url('/login');
+		}).error(function (err) {
+			if(err = "NotFound" ) {
+				alert("Email ID not registered in ASQ Portal.");
+			}
+		})
+	};
+	
+	$scope.pwReset = function (user){
+		var postData = {
+				password: user.password1,
+				token: $routeParams.token
+		}
+		$http.post('/reset', postData).success(function (response){
+			console.log(response);
+			alert("Password Updated Successfully.");
+			$location.url('/login');
+		}).error(function (err) {
+			if(err) {
+				alert("Error while updating password.Please try again!.");
+			}
 		})
 	};
 
@@ -494,8 +556,7 @@ app.controller('homeCtrl', function ($q, $scope, $rootScope, $http, $location, $
 	$scope.exam = function (){
 		$rootScope.submited = false;
 		$http.get('/quiz').success(function (response) {
-			$rootScope.questions = response;
-			console.log($rootScope.questions);
+			$rootScope.questions = response;			
 			$location.path('/exam/0');
 		});
 	};
@@ -504,14 +565,14 @@ app.controller('homeCtrl', function ($q, $scope, $rootScope, $http, $location, $
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 
 });
 
 //Updated by Srinivas Thungathurti for ASQ Upgrade 2.0
-app.controller('profileCtrl', function ($q, $scope, $rootScope, $http, $location) {
-	//console.log($scope.currentUser);
+app.controller('profileCtrl', function ($q, $scope, $rootScope, $http, $location) {	
 	$scope.firstName = $rootScope.currentUser.firstName;
 	$scope.states = [
 	                 {
@@ -725,6 +786,7 @@ app.controller('profileCtrl', function ($q, $scope, $rootScope, $http, $location
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 	//Updated Password validation as the current behavior is asking user to fill in the New/Repeated Password while updating profile.
@@ -864,8 +926,7 @@ app.controller('adminCtrl', function ($q, $scope, $rootScope, $http, $location) 
 			for(i=0;i<=$scope.questionsList.length-1;i++) {
 				$scope.allQuestions.push($scope.questionsList[i]);
 			}
-			$scope.partialQuestions = $scope.allQuestions.slice(begin, end);
-			console.log(response);
+			$scope.partialQuestions = $scope.allQuestions.slice(begin, end);			
 			$location.url('/questionInfo');
 		}).error(function (err) {
 			alert("Error!");
@@ -939,7 +1000,6 @@ app.controller('adminCtrl', function ($q, $scope, $rootScope, $http, $location) 
 			choices : formatChoice, //$scope.choice.split("\n"),
 			correctCh : $scope.correctChoice
 		};
-		alert(formatChoice);
 		$http.post('/updateQuestionDet',postData).success(function (response){
 			if (response == 'success'){
 			alert('Success!');
@@ -1113,8 +1173,7 @@ app.controller('usersCtrl', function ($q,$scope, $rootScope, $http, $location) {
 				$scope.allUsers.push($scope.users[i]);
 			}
 			$scope.partialUsers = $scope.allUsers.slice(begin, end);
-		  if ($scope.users[0] != undefined) {
-			console.log(response);
+		  if ($scope.users[0] != undefined) {			
 			$location.url('/userInfo');
 		  }else {
 			console.log("No Users found for your Search.");
@@ -1427,6 +1486,7 @@ app.controller('aboutCtrl', function ($q, $scope, $rootScope, $http, $location) 
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 
@@ -1592,6 +1652,7 @@ app.controller('examCtrl', function ($q, $scope, $rootScope, $http, $location, $
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 	$scope.submit = function () {
@@ -1749,6 +1810,7 @@ app.controller('practiseCtrl', function($scope, $routeParams, $http, $rootScope,
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 	$scope.submit = function () {
@@ -1861,6 +1923,7 @@ app.controller('practiseConfCtrl', function($q, $scope, $http, $rootScope, $loca
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 
@@ -1928,6 +1991,7 @@ app.controller('reportCtrl', function ($q, $scope, $rootScope, $http, $location)
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 	
@@ -2011,8 +2075,9 @@ app.controller('reportCtrl', function ($q, $scope, $rootScope, $http, $location)
 	};
 	
 	$scope.init = function (num){
-        quizPostData.number = num? num: 3;
-        practisePostData.number = num? num: 3;
+		if(num > 3) $rootScope.numbers = num;
+        quizPostData.number = $rootScope.numbers? $rootScope.numbers: 3;
+        practisePostData.number = $rootScope.numbers? $rootScope.numbers: 3;
         $scope.quizChartConfig = {
             "options": {
                 "chart": {
@@ -2174,6 +2239,7 @@ app.controller('historyCtrl', function ($q, $scope, $rootScope, $http, $location
 		$http.post('/logout',$rootScope.user).success(function () {
 			$location.url('/');
 			$rootScope.currentUser = undefined;
+			$rootScope.user = undefined;
 		})
 	};
 	var postData ={
@@ -2295,8 +2361,9 @@ app.controller('historyCtrl', function ($q, $scope, $rootScope, $http, $location
 	};
 	
 	$scope.init = function (num){
-        quizPostData.number = num? num: 3;
-        practisePostData.number = num? num: 3;
+		if(num > 3) $rootScope.numbers = num;
+        quizPostData.number = $rootScope.numbers? $rootScope.numbers: 3;
+        practisePostData.number = $rootScope.numbers? $rootScope.numbers: 3;
         $scope.quizChartConfig = {
             "options": {
                 "chart": {
@@ -2448,6 +2515,7 @@ app.controller('navCtrl', function ($scope, $http, $location, $rootScope){
         $http.post('/logout',$rootScope.user).success(function () {
             $location.url('/');
             $rootScope.currentUser = undefined;
+            $rootScope.user = undefined;
         })
     }
 });
@@ -2479,6 +2547,15 @@ app.config(function ($routeProvider, $httpProvider, $locationProvider) {
 		when('/login', {
 			templateUrl: 'partials/login.html',
 			controller: 'loginCtrl'
+		}).
+		//Added by Srinivas Thungathurti for ASQ Upgrade 2.0.New screens Forget Password added.
+		when('/forgetPasswd', {
+			templateUrl: 'partials/forgetPassword.html',
+			controller: 'loginCtrl'
+		}).
+		when('/reset',{
+			templateUrl : 'partials/resetPassword.html',
+			controller : 'loginCtrl'
 		}).
 		when('/home', {
 			templateUrl: 'partials/home.html',
@@ -2607,6 +2684,13 @@ app.config(function ($routeProvider, $httpProvider, $locationProvider) {
 		when('/examInfo', {
 			templateUrl: 'partials/examInfo.html',
 			controller: 'adminCtrl',
+			resolve: {
+				loggedin: checkLoggedIn
+			}
+		}).
+		when('/testDynamic', {
+			templateUrl: 'partials/TestDynamic.html',
+			controller: 'historyCtrl',
 			resolve: {
 				loggedin: checkLoggedIn
 			}

@@ -16,7 +16,9 @@ var userSchema = new mongoose.Schema({
     activeIn: String,
     expiryDate: String,
     subscriber: String,
-    birthDate: String
+    birthDate: String,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 });
 
 userSchema.methods.validPassword = function( pwd ) {

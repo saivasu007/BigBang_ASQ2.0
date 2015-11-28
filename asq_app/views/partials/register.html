@@ -25,18 +25,13 @@
                 <input id="lName" type="text" ng-model="user.lastName" class="form-control" placeholder="Last Name">
             </div>
             <!-- Added by Srinivas Thungathurti for ASQ Upgrade 2.0. -->
-            <!-- 
-            <div class="form-group">
-                <input type="text" id="bday" ng-model="user.birthDate" class="form-control" placeholder="Date Of Birth" ng-min="2050-12-31" ng-max="1960-01-01" ng-blur="testBirthDate()" data-toggle="tooltip1" data-placement="top" data-original-title="Please use only numbers and / symbol">
-                <span ng-show="birthDateErr && user.birthDate != undefined" style="color:red;display:inline-block;">Invalid Date Format,Use MM/DD/YYYY</span>
-            </div>
-            -->
+            <!-- Updated for ASQ Upgrade2.0 and issue#2 (Github Issues Tab) .Date picker disabled weekends and need to show all the dates as available. -->
             <div ng-controller="DatepickerCtrl">
 			<div class="row">
 		        <div class="col-md-6">
 		            <p class="input-group">
 		              <input type="text" class="form-control" uib-datepicker-popup="MM/dd/yyyy" ng-model="user.birthDate" is-open="status.opened" 
-		              		 min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" 
+		              		 min-date="minDate" max-date="maxDate" datepicker-options="dateOptions"  
 		              		 ng-required="true" close-text="Close" style="width:260px;" placeholder="Date Of Birth"/>
 		              <span class="input-group-btn">
 		                <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
