@@ -14,6 +14,7 @@
 					<br>
 					<h4>Welcome, {{currentUser.firstName}},{{currentUser.lastName}}</h4>
 					<span class="color customLink"><a href="/home">Home</a></span> |
+					<span class="color customLink" ng-if="currentUser.role=='admin'"><a href="/admin">Admin</a> |</span>
 					<span class="color customLink"><a href="/profile">Profile</a></span> |
 					<span class="color customLink"><a href="/changePassword">Change Password</a></span> |
 					<span class="color customLink"><a href="" ng-click="logout()">Logout</a></span>
@@ -22,52 +23,27 @@
 		</div>
 	</header>
 	
-	<ng-form name="examInfo">
-	<div class="content">
+	<ng-form name="examInfoList">
 		<div class="container">
 			<!-- Content -->
 			<hr>
-			<h3>Exam Information Screen:</h3>
-			<br>
+			<h3>Exam List Screen:</h3>
 			<div class="form-group">
-				
-				    <table>
-				    <tr>
-				    <td nowrap style="vertical-align:bottom">
-					<label for="name" style="font-size: 16px">Add Exam Information:</label>
-					</td><td style="width:20px"></td><td>
-					<input id="name" class="form-control" style="width: 190px; height: 32px" type="text" ng-model="name" placeholder="New Exam Name" ng-required="true">
-					</td>
-					<td style="width:10px"></td>
-					<td>
-					<input id="desc" class="form-control" style="width: 250px; height: 32px" type="text" ng-model="description" placeholder="Exam Description" ng-required="true">
-					</td>
-					<td>
-					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button  style="width: 98px; height: 32px; font-size: 16px;" class="btn btn-primary" ng-click="addCertification()" ng-disabled="examInfo.$invalid">
-					<span class="glyphicon glyphicon-ok-sign"></span>  Add
-					</button>
-					</td>
-					<td>
-					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/admin"><button  style="width: 98px; height: 32px; font-size: 16px;" class="btn btn-warning">
-					<span class="glyphicon glyphicon-remove-sign"></span>  Cancel
-					</button></a></td>
-					</tr></table>
-			<br><br>
-			<br><br>
+			<br>
 			<div  style="border:2px solid #5BC0DE;width:950px;" data-ng-init="getCerts()">
 			<table class="table table-striped">
 				<thead>
 				<tr style="background-color:#D3D3D3">
 					<th>Exam Name</th>
 					<th>Description</th>
-					<th>Action</th>
+					<th></th>
 				</tr>
 				</thead>
 				<tbody>
 				<tr ng-repeat="cert in certifications">
 					<td>{{cert.name}}</td>
 					<td>{{cert.description}}</td>
-					<td><input id="act" type="radio" name="cert" ng-model="certID" value="{{cert._id}}" ng-change="getValue(certID)"></td>
+					<td><input id="act" type="radio" name="cert" ng-model="certName" value="{{cert.name}}" ng-click="getValue(certName)"></td>
 				</tr>
 				<tr ng-show="certifications.length <= 0">
 				<td></td>
@@ -81,9 +57,11 @@
 			<table>
 			<tr>
 			<td style="width:320px;"></td>
-			<td style="width:320px;" align="center"><button  class="btn btn-warning" ng-click="removeCert()" ng-disabled="wrong">
-	            <span class="glyphicon glyphicon-remove-sign"></span>Delete 
-				</button>
+			<td style="width:320px;" align="center"><button  style="margin: 10px 10px 50px 5px; width: 95px; height: 40px; font-size: 16px" class="btn btn-primary" ng-click="exam()" ng-disabled="wrong">
+	            <span class="glyphicon glyphicon-ok-sign"></span>Start </button>
+	            <a href="/home"><button style="margin: 10px 20px 50px 5px; width: 95px; height: 40px; font-size: 16px" class="btn btn-warning">
+					<span class="glyphicon glyphicon-remove-sign"></span>  Cancel
+				</button></a>
 			</td>
 			<td></td>
 			</tr>

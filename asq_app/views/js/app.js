@@ -575,6 +575,34 @@ app.controller('homeCtrl', function ($q, $scope, $rootScope, $http, $location, $
 			$location.path('/exam/0');
 		});
 	};
+	
+	//Added by Srinivas Thungathurti for ASQ Upgrade 2.0.Get the all available certifications on the application.
+	$scope.getCerts = function (){
+		$scope.wrong = true;
+		$http.post('/getCerts','').success(function (response) {
+			$scope.certifications = response;
+		  if ($scope.certifications[0] != undefined) {
+			console.log(response);
+			$location.url('/examInfoList');
+		  }else {
+			alert("No Certification found.");
+		  }
+		}).error(function (err) {
+			alert("Error!");
+			console.log(err);
+		})
+	};
+	
+	$scope.getValue = function(value) {
+		if(value == "CSQE") { 
+			$scope.wrong = false;
+		} else {
+			$scope.wrong = true;
+		}
+		$scope.selectedValue = value;
+    }
+	//End changes for ASQ Upgrade2.0.
+	
 
 	$scope.logout = function () {
 		$http.post('/logout',$rootScope.user).success(function () {
@@ -1680,6 +1708,7 @@ app.controller('examCtrl', function ($q, $scope, $rootScope, $http, $location, $
 			$rootScope.user = undefined;
 		})
 	};
+	
 	$scope.submit = function () {
 		$rootScope.latest = Date.now();
 		$rootScope.timer = false;
@@ -2610,6 +2639,13 @@ app.config(function ($routeProvider, $httpProvider, $locationProvider) {
 		when('/exam/:id', {
 			templateUrl: 'partials/exam.html',
 			controller: 'examCtrl',
+			resolve: {
+				loggedin: checkLoggedIn
+			}
+		}).
+		when('/examInfoList', {
+			templateUrl: 'partials/examInfoList.html',
+			controller: 'homeCtrl',
 			resolve: {
 				loggedin: checkLoggedIn
 			}
