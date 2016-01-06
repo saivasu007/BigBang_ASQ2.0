@@ -1,0 +1,17 @@
+1. Update server.js / register.js
+2.  New test/register.js
+3. Please replace the original code with new code and do "npm install", then run "npm test"
+4. Edit server.js
+
+  a. fix renderTemplate() error: can;t find template:
+
+
+  
+  Need sending email when register, call (renderTemplate())
+  b. don't need monitor actual port:
+
+
+5. package.json:
+add mocha and supertest
+
+Ziyi
