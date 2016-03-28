@@ -1,7 +1,7 @@
 {
-  "name": "asq_app",
+  "name": "asq-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "ASQ sample test taking portal",
   "main": "server.js",
   "dependencies": {
     "async": "^1.4.2",
@@ -22,11 +22,17 @@
     "path":"^0.12.7",
     "properties-reader":"^0.0.13"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://git.heroku.com/asq-app.git"
+  },
+  "keywords": [
+    "asq"
+  ],
+  "author": "Srinivas Thungathurti",
   "license": "ISC"
 }
