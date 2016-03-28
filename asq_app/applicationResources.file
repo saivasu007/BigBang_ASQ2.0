@@ -1,4 +1,4 @@
-process.env.port = 1337
+process.env.port = 8080
 mongodb.connect.url = mongodb://localhost:27017/Quiz
 model.ep = epmodels
 model.gk = gkmodels
